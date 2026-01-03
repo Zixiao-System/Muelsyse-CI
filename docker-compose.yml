@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: muelsyse-postgres
+    environment:
+      POSTGRES_DB: muelsyse
+      POSTGRES_USER: muelsyse
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-muelsyse}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U muelsyse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: muelsyse-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Django API Server
+  api:
+    build:
+      context: ./control-plane/Python-src
+      dockerfile: Dockerfile
+    container_name: muelsyse-api
+    environment:
+      - DJANGO_SETTINGS_MODULE=muelsyse.settings.self_hosted
+      - DATABASE_URL=postgres://muelsyse:${DB_PASSWORD:-muelsyse}@postgres:5432/muelsyse
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY:-change-me-32-chars-minimum}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn muelsyse.wsgi:application -b 0.0.0.0:8000 --workers 4"
+    volumes:
+      - artifacts_data:/var/lib/muelsyse/artifacts
+
+  # Django WebSocket Server (Channels/Daphne)
+  websocket:
+    build:
+      context: ./control-plane/Python-src
+      dockerfile: Dockerfile
+    container_name: muelsyse-websocket
+    environment:
+      - DJANGO_SETTINGS_MODULE=muelsyse.settings.self_hosted
+      - DATABASE_URL=postgres://muelsyse:${DB_PASSWORD:-muelsyse}@postgres:5432/muelsyse
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+    ports:
+      - "8001:8001"
+    depends_on:
+      - api
+    command: daphne -b 0.0.0.0 -p 8001 muelsyse.asgi:application
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./control-plane/Python-src
+      dockerfile: Dockerfile
+    container_name: muelsyse-celery-worker
+    environment:
+      - DJANGO_SETTINGS_MODULE=muelsyse.settings.self_hosted
+      - DATABASE_URL=postgres://muelsyse:${DB_PASSWORD:-muelsyse}@postgres:5432/muelsyse
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+    depends_on:
+      - api
+      - redis
+    command: celery -A muelsyse worker -l info --concurrency=4
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build:
+      context: ./control-plane/Python-src
+      dockerfile: Dockerfile
+    container_name: muelsyse-celery-beat
+    environment:
+      - DJANGO_SETTINGS_MODULE=muelsyse.settings.self_hosted
+      - DATABASE_URL=postgres://muelsyse:${DB_PASSWORD:-muelsyse}@postgres:5432/muelsyse
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+    depends_on:
+      - api
+      - redis
+    command: celery -A muelsyse beat -l info
+
+  # Web UI (React)
+  web-ui:
+    build:
+      context: ./control-plane/Muelsyse-Web-UI
+      dockerfile: Dockerfile
+    container_name: muelsyse-web-ui
+    environment:
+      - API_URL=http://api:8000
+      - WS_URL=ws://websocket:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  # Runner (Rust)
+  runner:
+    build:
+      context: ./runners
+      dockerfile: Dockerfile
+    container_name: muelsyse-runner
+    environment:
+      - MUELSYSE__RUNNER__ID=00000000-0000-0000-0000-000000000001
+      - MUELSYSE__RUNNER__NAME=docker-runner
+      - MUELSYSE__RUNNER__TOKEN=${RUNNER_TOKEN:-change-me}
+      - MUELSYSE__CONTROL_PLANE__API_URL=http://api:8000
+      - MUELSYSE__CONTROL_PLANE__WS_URL=ws://websocket:8001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - runner_workspaces:/tmp/muelsyse/workspaces
+    depends_on:
+      - websocket
+
+volumes:
+  postgres_data:
+  redis_data:
+  artifacts_data:
+  runner_workspaces:

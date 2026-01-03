@@ -1,0 +1,6 @@
+-r base.txt
+
+# Development tools
+django-debug-toolbar>=4.2
+ipython>=8.18
+watchdog>=3.0

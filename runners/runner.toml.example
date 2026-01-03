@@ -1,0 +1,35 @@
+# Muelsyse Runner Configuration
+# Environment variables can also be used with MUELSYSE_ prefix
+
+[runner]
+id = "00000000-0000-0000-0000-000000000001"
+name = "local-runner"
+token = "mci_runner_your_token_here"
+labels = ["linux", "docker", "shell"]
+max_concurrent_jobs = 2
+heartbeat_interval_secs = 30
+
+[control_plane]
+api_url = "http://localhost:8000"
+ws_url = "ws://localhost:8001"
+timeout_secs = 30
+reconnect_delay_secs = 5
+
+[executor]
+enabled = ["shell", "docker"]
+
+[executor.docker]
+socket = "/var/run/docker.sock"
+network_mode = "bridge"
+memory_limit = 0  # 0 = unlimited
+cpu_limit = 0.0   # 0 = unlimited
+pull_policy = "if-not-present"  # always, if-not-present, never
+
+[executor.shell]
+default_shell = "bash"
+cleanup_workspace = true
+
+[workspace]
+base_path = "/tmp/muelsyse/workspaces"
+artifact_path = "/tmp/muelsyse/artifacts"
+cache_path = "/tmp/muelsyse/cache"

@@ -1,0 +1,63 @@
+[package]
+name = "muelsyse-runner"
+version = "0.1.0"
+edition = "2021"
+authors = ["Muelsyse-CI Team"]
+description = "Rust-based CI/CD job runner for Muelsyse-CI"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# HTTP & WebSocket
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+tokio-tungstenite = { version = "0.21", features = ["rustls-tls-webpki-roots"] }
+futures-util = "0.3"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Configuration
+config = "0.14"
+dotenvy = "0.15"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# UUID
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Docker (via bollard)
+bollard = "0.15"
+
+# System info
+sysinfo = "0.30"
+
+# Async traits
+async-trait = "0.1"
+
+# Signal handling
+tokio-util = { version = "0.7", features = ["codec"] }
+signal-hook = "0.3"
+signal-hook-tokio = { version = "0.3", features = ["futures-v0_3"] }
+
+# Crypto for token hashing
+sha2 = "0.10"
+hex = "0.4"
+
+[dev-dependencies]
+tokio-test = "0.4"
+
+[[bin]]
+name = "muelsyse-runner"
+path = "src/main.rs"

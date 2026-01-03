@@ -1,0 +1,129 @@
+# Muelsyse-CI Pipeline Configuration Example
+# Place this file at .muelsyse/pipeline.yml in your repository
+
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  CI: true
+  NODE_ENV: test
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: [linux]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run linter
+        run: |
+          echo "Running linter..."
+          # Add your lint commands here
+
+  test:
+    name: Test
+    runs-on: [linux, docker]
+    needs: [lint]
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20', '22']
+
+    container:
+      image: node:${{ matrix.node }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_VERSION: ${{ matrix.node }}
+
+      - name: Upload coverage
+        if: matrix.node == '20'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  build:
+    name: Build
+    runs-on: [linux, docker]
+    needs: [test]
+    timeout-minutes: 20
+
+    container:
+      image: node:20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to ${{ inputs.environment || 'staging' }}
+    runs-on: [linux]
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      - name: Deploy
+        run: |
+          echo "Deploying to ${{ inputs.environment || 'staging' }}..."
+          # Add your deployment commands here
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}

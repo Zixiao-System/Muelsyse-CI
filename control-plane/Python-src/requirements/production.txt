@@ -1,0 +1,8 @@
+-r base.txt
+
+# Production server
+gunicorn>=21.0
+uvicorn[standard]>=0.25
+
+# Monitoring
+sentry-sdk>=1.38
