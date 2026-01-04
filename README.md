@@ -46,7 +46,7 @@ A modern, self-hosted CI/CD system with GitHub Actions compatible configuration.
 | Runner | Rust + Tokio |
 | Database | PostgreSQL |
 | Cache/Queue | Redis + Celery |
-| WebSocket | Django Channels |
+| WebSocket | Django`` Channels |
 
 ## Quick Start
 
@@ -174,4 +174,10 @@ muelsyse-ci/
 
 ## License
 
-MIT
+GNU GPL
+
+## ToolChain
+
+Develop：[Logos](https://github.com/Zixiao-System/logos)
+
+

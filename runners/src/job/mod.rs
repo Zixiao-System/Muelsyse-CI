@@ -2,4 +2,10 @@
 
 mod runner;
 
-pub use runner::JobRunner;
+pub use runner::{
+    JobRunner,
+    JobStatus,
+    StepStatus,
+    JobContext,
+    RetryConfig,
+};

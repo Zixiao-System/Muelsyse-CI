@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.logs',
     'apps.secrets',
     'apps.artifacts',
+    'apps.webhooks',
 ]
 
 MIDDLEWARE = [
@@ -202,6 +203,9 @@ ARTIFACT_STORAGE_PATH = env.path('ARTIFACT_STORAGE_PATH', BASE_DIR / 'artifacts'
 # Runner settings
 RUNNER_HEARTBEAT_INTERVAL = 30  # seconds
 RUNNER_OFFLINE_THRESHOLD = 90  # seconds
+
+# GitHub Webhook settings
+GITHUB_WEBHOOK_SECRET = env.str('GITHUB_WEBHOOK_SECRET', '')
 
 # Logging
 LOGGING = {

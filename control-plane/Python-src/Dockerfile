@@ -9,11 +9,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements/production.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements/ requirements/
+RUN pip install --no-cache-dir -r requirements/production.txt
 
 # Copy application code
 COPY . .
+
+# Set production settings for collectstatic
+ENV DJANGO_SETTINGS_MODULE=muelsyse.settings.self_hosted
+ENV SECRET_KEY=build-time-key-not-for-production
 
 # Collect static files
 RUN python manage.py collectstatic --noinput

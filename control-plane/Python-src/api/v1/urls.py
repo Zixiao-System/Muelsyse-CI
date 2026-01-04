@@ -31,4 +31,7 @@ urlpatterns = [
         path('refresh/', AuthViewSet.as_view({'post': 'refresh'}), name='auth-refresh'),
         path('me/', AuthViewSet.as_view({'get': 'me'}), name='auth-me'),
     ])),
+
+    # Webhooks endpoints
+    path('webhooks/', include('apps.webhooks.urls', namespace='webhooks')),
 ]

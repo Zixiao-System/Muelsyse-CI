@@ -3,7 +3,20 @@
 mod websocket;
 mod http;
 
-pub use websocket::WebSocketClient;
+pub use websocket::{
+    WebSocketClient,
+    ConnectionState,
+    StateCallback,
+    ReconnectStrategy,
+    OutgoingMessage,
+    IncomingMessage,
+    LogEntry,
+    SystemInfo,
+    JobSpec,
+    StepSpec,
+    ContainerSpec,
+    WorkspaceSpec,
+};
 pub use http::HttpClient;
 
 use crate::config::Settings;
@@ -28,5 +41,10 @@ impl ControlPlaneClient {
     /// Get the HTTP client
     pub fn http(&self) -> &HttpClient {
         &self.http
+    }
+
+    /// Get settings
+    pub fn settings(&self) -> &Settings {
+        &self.settings
     }
 }

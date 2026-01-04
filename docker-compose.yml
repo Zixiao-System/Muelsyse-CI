@@ -41,10 +41,15 @@ services:
     container_name: muelsyse-api
     environment:
       - DJANGO_SETTINGS_MODULE=muelsyse.settings.self_hosted
-      - DATABASE_URL=postgres://muelsyse:${DB_PASSWORD:-muelsyse}@postgres:5432/muelsyse
+      - DB_NAME=muelsyse
+      - DB_USER=muelsyse
+      - DB_PASSWORD=${DB_PASSWORD:-muelsyse}
+      - DB_HOST=postgres
+      - DB_PORT=5432
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY:-change-me-32-chars-minimum}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET:-}
     ports:
       - "8000:8000"
     depends_on:
