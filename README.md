@@ -2,7 +2,7 @@
 
 A modern, self-hosted CI/CD system with GitHub Actions compatible configuration.
 
-> Named after Muelsyse (缪尔赛斯), a Rhine Lab operator from Arknights.
+> Named after Muelsyse (缪尔赛思), a Rhine Lab operator from Arknights.
 
 ## Features
 
@@ -19,7 +19,7 @@ A modern, self-hosted CI/CD system with GitHub Actions compatible configuration.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         Web UI (React)                          │
+│                         Web UI (Vue3)                          │
 └─────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
@@ -42,7 +42,7 @@ A modern, self-hosted CI/CD system with GitHub Actions compatible configuration.
 | Component | Technology |
 |-----------|------------|
 | Control Plane | Python Django + DRF + Channels |
-| Web UI | React Router v7 + MDUI + Tailwind CSS |
+| Web UI | Vue3+MDUI |
 | Runner | Rust + Tokio |
 | Database | PostgreSQL |
 | Cache/Queue | Redis + Celery |

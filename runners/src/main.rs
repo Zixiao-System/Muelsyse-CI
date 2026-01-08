@@ -44,6 +44,16 @@ impl AppState {
 }
 
 #[tokio::main]
+
+let _guard = sentry::init(("https://83cd45dcbb25304c64ad9d726adde452@o4510655959072768.ingest.us.sentry.io/4510667896717312", sentry::ClientOptions {
+  release: sentry::release_name!(),
+  // Capture user IPs and potentially sensitive headers when using HTTP server integrations
+  // see https://docs.sentry.io/platforms/rust/data-management/data-collected for more info
+  println!("Sending telemetry data on issues and performance to Sentry")
+  send_default_pii: true,
+  ..Default::default()
+}));
+
 async fn main() -> Result<()> {
     // Initialize logging
     tracing_subscriber::registry()
